@@ -105,3 +105,161 @@ def create_user(username, email, password, role_name, creator_role):
 
         if conn:
             conn.close()
+
+def get_users(role_name=None, search=None):
+    conn = None
+    cursor = None
+
+    try:
+        conn = get_db_connection()
+        cursor = conn.cursor()
+
+        query = '''
+            SELECT
+                u.user_id,
+                u.username,
+                u.email,
+                r.role_name,
+                u.status
+            FROM public."Users" u
+            JOIN public."Roles" r
+                ON u.role_id = r.role_id
+        '''
+
+        conditions = []
+        parameters = []
+
+        if role_name:
+            conditions.append("r.role_name = %s")
+            parameters.append(role_name)
+
+        if search:
+            conditions.append("u.username ILIKE %s")
+            parameters.append(f"%{search}%")
+
+        if conditions:
+            query += " WHERE " + " AND ".join(conditions)
+
+        query += " ORDER BY u.user_id"
+
+        cursor.execute(query, tuple(parameters))
+
+        rows = cursor.fetchall()
+
+        users = []
+
+        for row in rows:
+            users.append({
+                "user_id": row[0],
+                "username": row[1],
+                "email": row[2],
+                "role": row[3],
+                "status": row[4]
+            })
+
+        return users, None
+
+    except Error:
+        return None, "Database error"
+
+    finally:
+        if cursor:
+            cursor.close()
+
+        if conn:
+            conn.close()
+
+def get_user_by_id(user_id):
+    conn = None
+    cursor = None
+
+    try:
+        conn = get_db_connection()
+        cursor = conn.cursor()
+
+        cursor.execute(
+            '''
+            SELECT
+                u.user_id,
+                u.username,
+                u.email,
+                r.role_name,
+                u.status
+            FROM public."Users" u
+            JOIN public."Roles" r
+                ON u.role_id = r.role_id
+            WHERE u.user_id = %s
+            ''',
+            (user_id,)
+        )
+
+        row = cursor.fetchone()
+
+        if row is None:
+            return None, "User not found"
+
+        user = {
+            "user_id": row[0],
+            "username": row[1],
+            "email": row[2],
+            "role": row[3],
+            "status": row[4]
+        }
+
+        return user, None
+
+    except Error:
+        return None, "Database error"
+
+    finally:
+        if cursor:
+            cursor.close()
+
+        if conn:
+            conn.close()
+
+def update_user_status(user_id, status):
+    conn = None
+    cursor = None
+
+    try:
+        conn = get_db_connection()
+        cursor = conn.cursor()
+
+        cursor.execute(
+            '''
+            UPDATE public."Users"
+            SET status = %s
+            WHERE user_id = %s
+            RETURNING user_id, username, email, role_id, status
+            ''',
+            (status, user_id)
+        )
+
+        updated_user = cursor.fetchone()
+
+        if updated_user is None:
+            return None, "User not found"
+
+        conn.commit()
+
+        return {
+            "user_id": updated_user[0],
+            "username": updated_user[1],
+            "email": updated_user[2],
+            "role_id": updated_user[3],
+            "status": updated_user[4]
+        }, None
+
+    except Error:
+        if conn:
+            conn.rollback()
+
+        return None, "Database error"
+
+    finally:
+        if cursor:
+            cursor.close()
+
+        if conn:
+            conn.close()

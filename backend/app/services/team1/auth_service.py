@@ -1,5 +1,5 @@
 from psycopg2 import Error
-from werkzeug.security import check_password_hash
+from werkzeug.security import check_password_hash, generate_password_hash
 from flask_jwt_extended import create_access_token
 
 from app.extensions import get_db_connection
@@ -68,6 +68,69 @@ def login_user(username, password):
 
     except Error:
         return None, "Database error"
+
+    finally:
+        if cursor:
+            cursor.close()
+
+        if conn:
+            conn.close()
+
+def change_password(user_id, current_password, new_password):
+    conn = None
+    cursor = None
+
+    try:
+        conn = get_db_connection()
+        cursor = conn.cursor()
+
+        # Get the user's current password hash
+        cursor.execute(
+            '''
+            SELECT password_hash
+            FROM public."Users"
+            WHERE user_id = %s
+            ''',
+            (user_id,)
+        )
+
+        user = cursor.fetchone()
+
+        if user is None:
+            return False, "User not found"
+
+        current_password_hash = user[0]
+
+        # Verify the current password
+        if not check_password_hash(current_password_hash, current_password):
+            return False, "Current password is incorrect"
+
+        # Make sure the new password is different
+        if check_password_hash(current_password_hash, new_password):
+            return False, "New password must be different from the current password"
+
+        # Hash the new password
+        new_password_hash = generate_password_hash(new_password)
+
+        # Update the password
+        cursor.execute(
+            '''
+            UPDATE public."Users"
+            SET password_hash = %s
+            WHERE user_id = %s
+            ''',
+            (new_password_hash, user_id)
+        )
+
+        conn.commit()
+
+        return True, None
+
+    except Error:
+        if conn:
+            conn.rollback()
+
+        return False, "Database error"
 
     finally:
         if cursor:
