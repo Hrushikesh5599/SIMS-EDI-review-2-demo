@@ -2,6 +2,9 @@ from flask import Flask
 from flask_jwt_extended import JWTManager
 
 from app.config import JWT_SECRET_KEY
+from app.routes.team1.auth import auth_bp
+from app.routes.team1.users import users_bp
+from app.routes.team1.categories import categories_bp
 from app.routes.team3.reports import reports_bp
 from app.routes.team3.dashboard import dashboard_bp
 from app.routes.team3.notifications import notifications_bp
@@ -14,6 +17,10 @@ def create_app():
 
     app.config["JWT_SECRET_KEY"] = JWT_SECRET_KEY
     JWTManager(app)
+    
+    app.register_blueprint(auth_bp)
+    app.register_blueprint(users_bp)
+    app.register_blueprint(categories_bp)
 
     app.register_blueprint(reports_bp)
     app.register_blueprint(dashboard_bp)
