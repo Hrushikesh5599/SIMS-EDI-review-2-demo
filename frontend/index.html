@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SIMS - Smart Inventory Management System</title>
+    <link rel="stylesheet" href="index.css?v=4">
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Boxicons for modern icons -->
+    <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
+    <style>
+        .hidden { display: none !important; }
+    </style>
+</head>
+<body>
+
+    <!-- Notification Toast Container -->
+    <div id="toast-container" class="toast-container"></div>
+
+    <!-- Login Page Container -->
+    <div id="login-container" class="login-container" style="display: flex; align-items: center; justify-content: center; min-height: 100vh; background: var(--bg);">
+        <div class="login-box" style="background: var(--white); padding: 40px; border-radius: var(--radius); box-shadow: var(--shadow-lg); width: 100%; max-width: 400px; text-align: center;">
+            <div class="logo" style="margin-bottom: 20px;">
+                <div class="brand-logo" style="margin: 0 auto 10px;">SI</div>
+                <h2 style="font-weight: 800; font-size: 24px; color: var(--text);">Smart Inventory</h2>
+            </div>
+            
+            <form id="login-form" style="text-align: left;">
+                <div class="form-group" style="margin-bottom: 20px;">
+                    <label for="username" style="display: block; font-size: 13px; font-weight: 600; color: var(--text-secondary); margin-bottom: 8px;">Username</label>
+                    <div style="position: relative;">
+                        <i class='bx bx-user' style="position: absolute; left: 15px; top: 50%; transform: translateY(-50%); color: var(--text-light);"></i>
+                        <input type="text" id="username" required placeholder="Enter username" style="width: 100%; padding: 12px 15px 12px 40px; border: 1px solid var(--border); border-radius: 8px; font-size: 14px; background: var(--bg);">
+                    </div>
+                </div>
+                <div class="form-group" style="margin-bottom: 20px;">
+                    <label for="password" style="display: block; font-size: 13px; font-weight: 600; color: var(--text-secondary); margin-bottom: 8px;">Password</label>
+                    <div style="position: relative;">
+                        <i class='bx bx-lock-alt' style="position: absolute; left: 15px; top: 50%; transform: translateY(-50%); color: var(--text-light);"></i>
+                        <input type="password" id="password" required placeholder="Enter password" style="width: 100%; padding: 12px 40px 12px 40px; border: 1px solid var(--border); border-radius: 8px; font-size: 14px; background: var(--bg);">
+                        <i class='bx bx-show' id="toggle-password" style="position: absolute; right: 15px; top: 50%; transform: translateY(-50%); color: var(--text-light); cursor: pointer;"></i>
+                    </div>
+                </div>
+                <div id="login-error" class="hidden" style="color: var(--red); font-size: 13px; margin-bottom: 15px; text-align: center;"></div>
+                <button type="submit" class="btn primary" style="width: 100%; justify-content: center; padding: 12px; font-size: 15px;">
+                    Sign in <i class='bx bx-right-arrow-alt'></i>
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Main App Container -->
+    <div class="app hidden" id="app-container">
+
+        <!-- SIDEBAR -->
+        <aside class="sidebar" id="sidebar">
+            <div class="brand">
+                <div class="brand-logo">SI</div>
+                <div class="brand-text">
+                    <h2>Smart Inventory</h2>
+                    <span id="display-role">Loading...</span>
+                </div>
+            </div>
+
+            <!-- SUPPLIER/USER PROFILE -->
+            <div class="supplier-mini-card">
+                <div class="supplier-avatar"><i class='bx bx-user'></i></div>
+                <div class="supplier-details">
+                    <strong id="display-name">Loading...</strong>
+                    <span><i class='bx bxs-check-circle' style="color: var(--green);"></i> Verified</span>
+                </div>
+            </div>
+
+            <!-- NAVIGATION -->
+            <nav class="navigation" id="sidebar-nav">
+                <!-- Dynamically populated based on role by app.js -->
+            </nav>
+
+            <!-- SIDEBAR BOTTOM -->
+            <div class="sidebar-bottom">
+                <button class="nav-item logout-btn" id="logout-btn">
+                    <i class='bx bx-log-out'></i>
+                    <span>Sign out</span>
+                </button>
+            </div>
+        </aside>
+
+        <!-- MAIN -->
+        <main class="main">
+            <!-- TOPBAR -->
+            <header class="topbar">
+                <button class="mobile-menu" id="mobileMenu">
+                    <i class='bx bx-menu'></i>
+                </button>
+
+                <button class="sidebar-toggle" id="sidebarToggle">
+                    <i class='bx bx-menu-alt-left'></i>
+                </button>
+
+                <div class="global-search">
+                    <i class='bx bx-search'></i>
+                    <input type="text" id="globalSearch" placeholder="Search anything...">
+                    <kbd>Ctrl K</kbd>
+                </div>
+
+                <div class="top-actions">
+                    <button class="top-action" id="themeToggle" title="Toggle dark mode">
+                        <i class='bx bx-moon'></i>
+                    </button>
+
+                    <button class="top-action notification-button" id="notificationButton" title="Notifications">
+                        <i class='bx bx-bell'></i>
+                        <span class="notification-dot" style="display: none;" id="notification-badge">0</span>
+                    </button>
+
+                    <div class="top-profile">
+                        <div class="top-avatar"><i class='bx bx-user'></i></div>
+                        <div class="top-profile-text">
+                            <strong id="topbar-display-name">User</strong>
+                            <span id="topbar-display-role">Role</span>
+                        </div>
+                        <i class='bx bx-chevron-down'></i>
+                    </div>
+                </div>
+            </header>
+
+            <!-- CONTENT -->
+            <section class="content" id="content-area">
+                <!-- Pages injected here via JS router -->
+            </section>
+        </main>
+    </div>
+
+    <!-- Modals Container -->
+    <div id="modals-container"></div>
+
+    <!-- Scripts -->
+    <script src="js/utils/utils.js?v=8"></script>
+    <script src="js/api/api.js?v=8"></script>
+    <script src="js/auth/auth.js?v=8"></script>
+    <script src="js/components/modal.js?v=8"></script>
+    
+    <!-- Core App Logic -->
+    <script src="js/app.js?v=8"></script>
+
+    <!-- Page Scripts -->
+    <script src="js/pages/login.js?v=8"></script>
+    <script src="js/dashboards/dashboard.js?v=8"></script>
+    <script src="js/pages/users.js?v=9"></script>
+    <script src="js/pages/categories.js?v=8"></script>
+    <script src="js/pages/reports.js?v=8"></script>
+    <script src="js/pages/notifications.js?v=8"></script>
+    <script src="js/pages/audit-logs.js?v=8"></script>
+    <script src="js/pages/backups.js?v=8"></script>
+    
+    <!-- Skeleton Page Scripts -->
+    <script src="js/pages/products.js?v=9"></script>
+    <script src="js/pages/inventory.js?v=9"></script>
+    <script src="js/pages/suppliers.js?v=9"></script>
+    <script src="js/pages/purchase-orders.js?v=9"></script>
+    <script src="js/pages/stock-transactions.js?v=9"></script>
+    <script src="js/pages/stock-requests.js?v=9"></script>
+    <script src="js/pages/quotations.js?v=9"></script>
+    <script src="js/pages/shipments.js?v=9"></script>
+    <script src="js/pages/payments.js?v=9"></script>
+
+</body>
+</html>
