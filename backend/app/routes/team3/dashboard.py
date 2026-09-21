@@ -23,6 +23,7 @@ def employee_dashboard():
 
 
 @dashboard_bp.route("/supplier", methods=["GET"])
+@role_required("Supplier")
 def supplier_dashboard():
     dashboard_data = get_supplier_dashboard()
 
