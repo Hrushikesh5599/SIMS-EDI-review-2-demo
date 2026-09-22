@@ -81,34 +81,71 @@ App.pages['dashboard'] = {
                 `;
 
                 contentContainer.innerHTML = `
-                    <div class="section-title">
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; margin-bottom: 2rem;">
+                        <!-- Low Stock Table -->
                         <div>
-                            <h3>Low Stock Products</h3>
-                            <p>Products that require immediate restocking</p>
-                        </div>
-                    </div>
-                    <div style="background: var(--white); border-radius: var(--radius); border: 1px solid var(--border); overflow: hidden;">
-                        <table style="width: 100%; text-align: left; border-collapse: collapse;">
-                            <thead>
-                                <tr style="background: #f7faf9; border-bottom: 1px solid var(--border);">
-                                    <th style="padding: 16px; font-weight: 600; font-size: 13px; color: var(--text-secondary);">ID</th>
-                                    <th style="padding: 16px; font-weight: 600; font-size: 13px; color: var(--text-secondary);">NAME</th>
-                                    <th style="padding: 16px; font-weight: 600; font-size: 13px; color: var(--text-secondary);">QTY</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                ${data.low_stock_products && data.low_stock_products.length > 0 
-                                    ? data.low_stock_products.map(p => `
-                                        <tr style="border-bottom: 1px solid #edf0ef;">
-                                            <td style="padding: 16px;">#${p.product_id}</td>
-                                            <td style="padding: 16px; font-weight: 600;">${Utils.escapeHtml(p.product_name)}</td>
-                                            <td style="padding: 16px; color: var(--red); font-weight: 700;">${p.quantity_available}</td>
+                            <div class="section-title">
+                                <div>
+                                    <h3>Low Stock Products</h3>
+                                    <p>Products that require immediate restocking</p>
+                                </div>
+                            </div>
+                            <div style="background: var(--white); border-radius: var(--radius); border: 1px solid var(--border); overflow: hidden;">
+                                <table style="width: 100%; text-align: left; border-collapse: collapse;">
+                                    <thead>
+                                        <tr style="background: #f7faf9; border-bottom: 1px solid var(--border);">
+                                            <th style="padding: 16px; font-weight: 600; font-size: 13px; color: var(--text-secondary);">NAME</th>
+                                            <th style="padding: 16px; font-weight: 600; font-size: 13px; color: var(--text-secondary);">QTY</th>
                                         </tr>
-                                    `).join('')
-                                    : '<tr><td colspan="3" style="padding: 24px; text-align: center; color: var(--text-secondary);">No low stock alerts.</td></tr>'
-                                }
-                            </tbody>
-                        </table>
+                                    </thead>
+                                    <tbody>
+                                        ${data.low_stock_products && data.low_stock_products.length > 0 
+                                            ? data.low_stock_products.map(p => `
+                                                <tr style="border-bottom: 1px solid #edf0ef;">
+                                                    <td style="padding: 16px; font-weight: 600;">${Utils.escapeHtml(p.product_name)}</td>
+                                                    <td style="padding: 16px; color: var(--red); font-weight: 700;">${p.quantity_available}</td>
+                                                </tr>
+                                            `).join('')
+                                            : '<tr><td colspan="2" style="padding: 24px; text-align: center; color: var(--text-secondary);">No low stock alerts.</td></tr>'
+                                        }
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+
+                        <!-- My Tasks -->
+                        <div>
+                            <div class="section-title">
+                                <div>
+                                    <h3>My Tasks & Alerts</h3>
+                                    <p>Your pending notifications</p>
+                                </div>
+                            </div>
+                            <div style="background: var(--white); border-radius: var(--radius); border: 1px solid var(--border); overflow: hidden;">
+                                <table style="width: 100%; text-align: left; border-collapse: collapse;">
+                                    <thead>
+                                        <tr style="background: #f7faf9; border-bottom: 1px solid var(--border);">
+                                            <th style="padding: 16px; font-weight: 600; font-size: 13px; color: var(--text-secondary);">TASK</th>
+                                            <th style="padding: 16px; font-weight: 600; font-size: 13px; color: var(--text-secondary);">DATE</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        ${data.tasks && data.tasks.length > 0 
+                                            ? data.tasks.map(t => `
+                                                <tr style="border-bottom: 1px solid #edf0ef;">
+                                                    <td style="padding: 16px;">
+                                                        <div style="font-weight: 600; color: var(--text);">${Utils.escapeHtml(t.title)}</div>
+                                                        <div style="font-size: 12px; color: var(--text-secondary); margin-top: 4px;">${Utils.escapeHtml(t.message)}</div>
+                                                    </td>
+                                                    <td style="padding: 16px; color: var(--text-secondary); font-size: 13px;">${new Date(t.created_at).toLocaleDateString()}</td>
+                                                </tr>
+                                            `).join('')
+                                            : '<tr><td colspan="2" style="padding: 24px; text-align: center; color: var(--text-secondary);">You have no pending tasks! 🎉</td></tr>'
+                                        }
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
                     </div>
                     ${updateUsernameHtml}
                 `;
@@ -253,28 +290,181 @@ App.pages['dashboard'] = {
                     </div>
                 `;
             } catch (err) {}
-        } else {
-            statsContainer.innerHTML = `
-                <div class="stat-card">
-                    <div class="stat-top">
-                        <span>Admin Access</span>
-                        <div class="stat-icon purple"><i class='bx bx-group'></i></div>
+        } else if (user.role === 'Manager') {
+            try {
+                const data = await Api.get('/dashboard/manager');
+                
+                statsContainer.style.gridTemplateColumns = 'repeat(4, 1fr)';
+                statsContainer.innerHTML = `
+                    <div class="card" style="padding: 1.5rem;">
+                        <div style="font-size: 13px; color: var(--text-secondary); margin-bottom: 5px;">Active POs</div>
+                        <div style="display: flex; justify-content: space-between; align-items: flex-end;">
+                            <div>
+                                <div style="font-size: 28px; font-weight: 700;">${data.active_pos || 0}</div>
+                                <div style="font-size: 12px; color: var(--blue);"><i class='bx bx-trending-up'></i> In Progress</div>
+                            </div>
+                            <div style="width: 40px; height: 40px; border-radius: 8px; background: var(--blue-light); color: var(--blue); display: flex; align-items: center; justify-content: center;"><i class='bx bx-briefcase'></i></div>
+                        </div>
                     </div>
-                    <h2>Full Access</h2>
-                    <div class="stat-bottom positive">
-                        <i class='bx bx-check-circle'></i> System functioning normally
+                    <div class="card" style="padding: 1.5rem;">
+                        <div style="font-size: 13px; color: var(--text-secondary); margin-bottom: 5px;">Pending PO Value</div>
+                        <div style="display: flex; justify-content: space-between; align-items: flex-end;">
+                            <div>
+                                <div style="font-size: 28px; font-weight: 700;">₹${data.pending_po_value ? data.pending_po_value.toLocaleString() : '0'}</div>
+                                <div style="font-size: 12px; color: var(--purple);"><i class='bx bx-time'></i> Awaiting fulfillment</div>
+                            </div>
+                            <div style="width: 40px; height: 40px; border-radius: 8px; background: var(--purple-light); color: var(--purple); display: flex; align-items: center; justify-content: center;"><i class='bx bx-rupee'></i></div>
+                        </div>
                     </div>
-                </div>
-            `;
-            contentContainer.innerHTML = `
-                <div class="section-title">
-                    <div>
-                        <h3>System Overview</h3>
-                        <p>You have full access to system metrics. Navigate to specific modules to manage resources.</p>
+                    <div class="card" style="padding: 1.5rem;">
+                        <div style="font-size: 13px; color: var(--text-secondary); margin-bottom: 5px;">Low Stock Alerts</div>
+                        <div style="display: flex; justify-content: space-between; align-items: flex-end;">
+                            <div>
+                                <div style="font-size: 28px; font-weight: 700;">${data.low_stock_count || 0}</div>
+                                <div style="font-size: 12px; color: var(--red);"><i class='bx bx-error'></i> Requires action</div>
+                            </div>
+                            <div style="width: 40px; height: 40px; border-radius: 8px; background: var(--red-light); color: var(--red); display: flex; align-items: center; justify-content: center;"><i class='bx bx-box'></i></div>
+                        </div>
                     </div>
-                </div>
-                ${updateUsernameHtml}
-            `;
+                    <div class="card" style="padding: 1.5rem;">
+                        <div style="font-size: 13px; color: var(--text-secondary); margin-bottom: 5px;">30-Day Movement</div>
+                        <div style="display: flex; justify-content: space-between; align-items: flex-end;">
+                            <div>
+                                <div style="font-size: 28px; font-weight: 700;">${data.recent_stock_movement || 0}</div>
+                                <div style="font-size: 12px; color: var(--green);"><i class='bx bx-transfer'></i> Total units transacted</div>
+                            </div>
+                            <div style="width: 40px; height: 40px; border-radius: 8px; background: var(--green-light); color: var(--green); display: flex; align-items: center; justify-content: center;"><i class='bx bx-line-chart'></i></div>
+                        </div>
+                    </div>
+                `;
+
+                contentContainer.innerHTML = `
+                    <div class="section-title">
+                        <div>
+                            <h3>Recent Stock Transactions</h3>
+                            <p>Latest movements across the warehouse</p>
+                        </div>
+                    </div>
+                    <div style="background: var(--white); border-radius: var(--radius); border: 1px solid var(--border); overflow: hidden; margin-bottom: 2rem;">
+                        <table style="width: 100%; text-align: left; border-collapse: collapse;">
+                            <thead>
+                                <tr style="background: #f7faf9; border-bottom: 1px solid var(--border);">
+                                    <th style="padding: 16px; font-weight: 600; font-size: 13px; color: var(--text-secondary);">PRODUCT</th>
+                                    <th style="padding: 16px; font-weight: 600; font-size: 13px; color: var(--text-secondary);">TYPE</th>
+                                    <th style="padding: 16px; font-weight: 600; font-size: 13px; color: var(--text-secondary);">QUANTITY</th>
+                                    <th style="padding: 16px; font-weight: 600; font-size: 13px; color: var(--text-secondary);">DATE</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${data.recent_transactions && data.recent_transactions.length > 0 
+                                    ? data.recent_transactions.map(t => `
+                                        <tr style="border-bottom: 1px solid #edf0ef;">
+                                            <td style="padding: 16px; font-weight: 600;">${Utils.escapeHtml(t.product_name)}</td>
+                                            <td style="padding: 16px;">
+                                                <span class="badge" style="background: var(${t.transaction_type === 'STOCK_IN' ? '--green-light' : '--red-light'}); color: var(${t.transaction_type === 'STOCK_IN' ? '--green' : '--red'}); font-weight: 600;">
+                                                    ${t.transaction_type}
+                                                </span>
+                                            </td>
+                                            <td style="padding: 16px; font-weight: 700;">${t.quantity}</td>
+                                            <td style="padding: 16px; color: var(--text-secondary); font-size: 13px;">${new Date(t.transaction_date).toLocaleDateString()}</td>
+                                        </tr>
+                                    `).join('')
+                                    : '<tr><td colspan="4" style="padding: 24px; text-align: center; color: var(--text-secondary);">No recent transactions.</td></tr>'
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                    ${updateUsernameHtml}
+                `;
+            } catch (err) {}
+        } else if (user.role === 'Owner') {
+            try {
+                const data = await Api.get('/dashboard/owner');
+                
+                statsContainer.style.gridTemplateColumns = 'repeat(4, 1fr)';
+                statsContainer.innerHTML = `
+                    <div class="card" style="padding: 1.5rem;">
+                        <div style="font-size: 13px; color: var(--text-secondary); margin-bottom: 5px;">Total Users</div>
+                        <div style="display: flex; justify-content: space-between; align-items: flex-end;">
+                            <div>
+                                <div style="font-size: 28px; font-weight: 700;">${data.total_users || 0}</div>
+                                <div style="font-size: 12px; color: var(--blue);"><i class='bx bx-group'></i> Active Accounts</div>
+                            </div>
+                            <div style="width: 40px; height: 40px; border-radius: 8px; background: var(--blue-light); color: var(--blue); display: flex; align-items: center; justify-content: center;"><i class='bx bx-user-pin'></i></div>
+                        </div>
+                    </div>
+                    <div class="card" style="padding: 1.5rem;">
+                        <div style="font-size: 13px; color: var(--text-secondary); margin-bottom: 5px;">Registered Suppliers</div>
+                        <div style="display: flex; justify-content: space-between; align-items: flex-end;">
+                            <div>
+                                <div style="font-size: 28px; font-weight: 700;">${data.total_suppliers || 0}</div>
+                                <div style="font-size: 12px; color: var(--green);"><i class='bx bx-buildings'></i> Network Partners</div>
+                            </div>
+                            <div style="width: 40px; height: 40px; border-radius: 8px; background: var(--green-light); color: var(--green); display: flex; align-items: center; justify-content: center;"><i class='bx bx-network-chart'></i></div>
+                        </div>
+                    </div>
+                    <div class="card" style="padding: 1.5rem;">
+                        <div style="font-size: 13px; color: var(--text-secondary); margin-bottom: 5px;">Total Products</div>
+                        <div style="display: flex; justify-content: space-between; align-items: flex-end;">
+                            <div>
+                                <div style="font-size: 28px; font-weight: 700;">${data.total_products || 0}</div>
+                                <div style="font-size: 12px; color: var(--purple);"><i class='bx bx-category'></i> Catalog Size</div>
+                            </div>
+                            <div style="width: 40px; height: 40px; border-radius: 8px; background: var(--purple-light); color: var(--purple); display: flex; align-items: center; justify-content: center;"><i class='bx bx-category-alt'></i></div>
+                        </div>
+                    </div>
+                    <div class="card" style="padding: 1.5rem;">
+                        <div style="font-size: 13px; color: var(--text-secondary); margin-bottom: 5px;">Inventory Value</div>
+                        <div style="display: flex; justify-content: space-between; align-items: flex-end;">
+                            <div>
+                                <div style="font-size: 28px; font-weight: 700;">₹${data.total_inventory_value ? data.total_inventory_value.toLocaleString() : '0'}</div>
+                                <div style="font-size: 12px; color: var(--yellow);"><i class='bx bx-line-chart'></i> Current Asset Worth</div>
+                            </div>
+                            <div style="width: 40px; height: 40px; border-radius: 8px; background: var(--yellow-light); color: var(--yellow); display: flex; align-items: center; justify-content: center;"><i class='bx bx-rupee'></i></div>
+                        </div>
+                    </div>
+                `;
+
+                contentContainer.innerHTML = `
+                    <div class="section-title">
+                        <div>
+                            <h3>Recent System Audit Logs</h3>
+                            <p>Global security and activity monitoring</p>
+                        </div>
+                    </div>
+                    <div style="background: var(--white); border-radius: var(--radius); border: 1px solid var(--border); overflow: hidden; margin-bottom: 2rem;">
+                        <table style="width: 100%; text-align: left; border-collapse: collapse;">
+                            <thead>
+                                <tr style="background: #f7faf9; border-bottom: 1px solid var(--border);">
+                                    <th style="padding: 16px; font-weight: 600; font-size: 13px; color: var(--text-secondary);">USER</th>
+                                    <th style="padding: 16px; font-weight: 600; font-size: 13px; color: var(--text-secondary);">ACTION</th>
+                                    <th style="padding: 16px; font-weight: 600; font-size: 13px; color: var(--text-secondary);">DETAILS</th>
+                                    <th style="padding: 16px; font-weight: 600; font-size: 13px; color: var(--text-secondary);">TIME</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${data.recent_audits && data.recent_audits.length > 0 
+                                    ? data.recent_audits.map(a => `
+                                        <tr style="border-bottom: 1px solid #edf0ef;">
+                                            <td style="padding: 16px; font-weight: 600;">
+                                                <div style="display: flex; align-items: center; gap: 8px;">
+                                                    <div style="width: 24px; height: 24px; border-radius: 50%; background: var(--bg); display: flex; align-items: center; justify-content: center; font-size: 12px; color: var(--text-secondary);"><i class='bx bx-user'></i></div>
+                                                    ${Utils.escapeHtml(a.username)}
+                                                </div>
+                                            </td>
+                                            <td style="padding: 16px; font-weight: 600;">${Utils.escapeHtml(a.action)}</td>
+                                            <td style="padding: 16px; color: var(--text-secondary); font-size: 13px;">${Utils.escapeHtml(a.details)}</td>
+                                            <td style="padding: 16px; color: var(--text-secondary); font-size: 13px;">${new Date(a.timestamp).toLocaleString()}</td>
+                                        </tr>
+                                    `).join('')
+                                    : '<tr><td colspan="4" style="padding: 24px; text-align: center; color: var(--text-secondary);">No recent audit logs.</td></tr>'
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                    ${updateUsernameHtml}
+                `;
+            } catch (err) {}
         }
 
         // Attach event listener for change username

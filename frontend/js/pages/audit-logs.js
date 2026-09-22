@@ -46,7 +46,7 @@ App.pages['audit-logs'] = {
                     <td>#${l.log_id}</td>
                     <td>${Utils.formatDate(l.action_time)}</td>
                     <td>User #${l.user_id}</td>
-                    <td><span class="badge" style="position: relative; top:0; background: var(--secondary)">${l.action}</span></td>
+                    <td><span class="badge" style="position: relative; top:0; background: #e0e0e0; color: #333;">${l.action}</span></td>
                     <td>${l.table_name}</td>
                     <td>${l.record_id || '-'}</td>
                     <td>${l.ip_address || '-'}</td>

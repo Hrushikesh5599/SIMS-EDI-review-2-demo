@@ -73,7 +73,7 @@ App.pages['reports'] = {
                 <tr>
                     <td>#${r.report_id}</td>
                     <td><strong>${Utils.escapeHtml(r.report_name)}</strong></td>
-                    <td><span class="badge" style="position: relative; top:0; background: var(--secondary)">${r.report_type}</span></td>
+                    <td><span class="badge" style="position: relative; top:0; background: #e0e0e0; color: #333;">${r.report_type}</span></td>
                     <td>User #${r.generated_by}</td>
                     <td>${Utils.formatDate(r.generated_on)}</td>
                 </tr>

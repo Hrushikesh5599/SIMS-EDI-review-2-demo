@@ -30,7 +30,6 @@ App.pages['products'] = {
                             <th>NAME</th>
                             <th>SKU</th>
                             <th>CATEGORY</th>
-                            <th>AVAILABLE QTY</th>
                             <th>PRICE</th>
                             <th>STATUS</th>
                             <th>ACTIONS</th>
@@ -96,8 +95,7 @@ App.pages['products'] = {
                     <td>#${p.product_id}</td>
                     <td><strong>${Utils.escapeHtml(p.product_name)}</strong></td>
                     <td>${Utils.escapeHtml(p.sku)}</td>
-                    <td><span class="badge" style="background: var(--secondary)">${Utils.escapeHtml(p.category_name || 'N/A')}</span></td>
-                    <td>${p.quantity_available}</td>
+                    <td><span class="badge" style="background: #e0e0e0; color: #333;">${Utils.escapeHtml(p.category_name || 'N/A')}</span></td>
                     <td>₹${p.price.toFixed(2)}</td>
                     <td>
                         <span class="status-badge ${p.status === 'Active' ? 'status-active' : 'status-inactive'}">

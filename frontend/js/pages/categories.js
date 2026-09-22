@@ -12,16 +12,13 @@ App.pages['categories'] = {
                     <p>Organize your products.</p>
                 </div>
                 <div class="header-actions">
+                    <div class="global-search" style="margin: 0; background: var(--white); border: 1px solid var(--border);">
+                        <i class='bx bx-search'></i>
+                        <input type="text" id="categories-search" placeholder="Search categories..." style="background: transparent;">
+                    </div>
                     <button class="btn primary" id="btn-create-category">
                         <i class='bx bx-plus'></i> New Category
                     </button>
-                </div>
-            </div>
-
-            <div class="actions-bar glass-panel" style="padding: 1rem; border-radius: 8px;">
-                <div class="search-box input-with-icon">
-                    <i class='bx bx-search'></i>
-                    <input type="text" id="categories-search" placeholder="Search categories...">
                 </div>
             </div>
             

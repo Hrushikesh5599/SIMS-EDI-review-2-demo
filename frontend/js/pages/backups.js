@@ -55,7 +55,7 @@ App.pages['backups'] = {
                 <tr>
                     <td>#${b.backup_id}</td>
                     <td><strong>${Utils.escapeHtml(b.backup_name)}</strong></td>
-                    <td><span class="badge" style="position: relative; top:0; background: var(--secondary)">${b.backup_type}</span></td>
+                    <td><span class="badge" style="position: relative; top:0; background: #e0e0e0; color: #333;">${b.backup_type}</span></td>
                     <td>${b.backup_size}</td>
                     <td>${Utils.formatDate(b.backup_date)}</td>
                     <td>

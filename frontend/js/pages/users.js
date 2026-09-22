@@ -8,7 +8,7 @@ App.pages['users'] = {
             <div class="page-header">
                 <div>
                     <span class="eyebrow">ADMINISTRATION</span>
-                    <h1>User Management 👥</h1>
+                    <h1>User Management</h1>
                     <p>Manage system access and roles.</p>
                 </div>
                 <div class="header-actions">
@@ -81,7 +81,7 @@ App.pages['users'] = {
                     <td>
                         <div class="table-actions">
                             <button class="btn-icon text-warning" onclick="App.pages['users'].toggleStatus(${u.user_id}, '${u.status}')" title="Toggle Status">
-                                <i class='bx ${u.status === 'Active' ? 'bx-block' : 'bx-check-circle'}'></i>
+                                <i class='bx ${u.status === 'Active' ? 'bx-check-circle' : 'bx-block'}'></i>
                             </button>
                         </div>
                     </td>

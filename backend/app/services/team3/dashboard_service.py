@@ -1,7 +1,7 @@
 from app.extensions import get_db_connection
 
 
-def get_employee_dashboard():
+def get_employee_dashboard(user_id):
     conn = get_db_connection()
     cursor = conn.cursor()
 
@@ -53,12 +53,32 @@ def get_employee_dashboard():
                 "quantity_available": row[2]
             })
 
+        # Notifications (Tasks)
+        cursor.execute('''
+            SELECT notification_id, title, message, created_at, is_read
+            FROM "Notifications"
+            WHERE user_id = %s AND is_read = false
+            ORDER BY created_at DESC
+            LIMIT 10
+        ''', (user_id,))
+        notif_rows = cursor.fetchall()
+        tasks = []
+        for row in notif_rows:
+            tasks.append({
+                "notification_id": row[0],
+                "title": row[1],
+                "message": row[2],
+                "created_at": row[3].isoformat() if row[3] else None,
+                "is_read": row[4]
+            })
+
         return {
             "total_products": total_products,
             "total_stock": total_stock,
             "stock_in": stock_in,
             "stock_out": stock_out,
-            "low_stock_products": low_stock_products
+            "low_stock_products": low_stock_products,
+            "tasks": tasks
         }
 
     finally:
@@ -127,6 +147,117 @@ def get_supplier_dashboard():
             "approved_quotations": approved_quotations
         }
 
+    finally:
+        cursor.close()
+        conn.close()
+
+def get_manager_dashboard():
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    try:
+        cursor.execute('SELECT COUNT(*) FROM "PurchaseOrders" WHERE status != \'Completed\'')
+        active_pos = cursor.fetchone()[0]
+
+        cursor.execute('SELECT COALESCE(SUM(total_amount), 0) FROM "PurchaseOrders" WHERE status = \'Pending\'')
+        pending_po_value = float(cursor.fetchone()[0])
+
+        cursor.execute('SELECT COUNT(*) FROM "Inventory" WHERE quantity_available <= 10')
+        low_stock_count = cursor.fetchone()[0]
+
+        cursor.execute('SELECT COALESCE(SUM(quantity), 0) FROM "StockTransactions" WHERE transaction_date >= current_date - interval \'30 days\'')
+        recent_stock_movement = cursor.fetchone()[0]
+
+        cursor.execute('''
+            SELECT st.transaction_id, p.product_name, st.transaction_type, st.quantity, st.transaction_date
+            FROM "StockTransactions" st
+            JOIN "Products" p ON p.product_id = st.product_id
+            ORDER BY st.transaction_date DESC LIMIT 5
+        ''')
+        transactions_rows = cursor.fetchall()
+        recent_transactions = []
+        for row in transactions_rows:
+            recent_transactions.append({
+                "transaction_id": row[0],
+                "product_name": row[1],
+                "transaction_type": row[2],
+                "quantity": row[3],
+                "transaction_date": row[4].isoformat() if row[4] else None
+            })
+
+        return {
+            "active_pos": active_pos,
+            "pending_po_value": pending_po_value,
+            "low_stock_count": low_stock_count,
+            "recent_stock_movement": recent_stock_movement,
+            "recent_transactions": recent_transactions
+        }
+    finally:
+        cursor.close()
+        conn.close()
+
+def get_owner_dashboard():
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    try:
+        cursor.execute('SELECT COUNT(*) FROM "Users"')
+        total_users = cursor.fetchone()[0]
+
+        cursor.execute('SELECT COUNT(*) FROM "Suppliers"')
+        total_suppliers = cursor.fetchone()[0]
+
+        cursor.execute('SELECT COUNT(*) FROM "Products"')
+        total_products = cursor.fetchone()[0]
+
+        cursor.execute('''
+            SELECT COALESCE(SUM(p.selling_price * i.quantity_available), 0)
+            FROM "Products" p
+            JOIN "Inventory" i ON p.product_id = i.product_id
+        ''')
+        total_inventory_value = float(cursor.fetchone()[0])
+
+        cursor.execute('''
+            SELECT log_id, action, u.username, action_time, table_name, record_id
+            FROM "AuditLogs" al
+            JOIN "Users" u ON al.user_id = u.user_id
+            ORDER BY action_time DESC LIMIT 5
+        ''')
+        audit_rows = cursor.fetchall()
+        recent_audits = []
+        for row in audit_rows:
+            action = row[1]
+            table = row[4]
+            rec_id = row[5]
+            
+            # Make the action more human-readable
+            readable_action = action.replace('_', ' ').title()
+            
+            # Create a meaningful details sentence
+            if action.startswith('CREATE'):
+                details = f"Added a new record in {table} (ID: {rec_id})"
+            elif action.startswith('UPDATE'):
+                details = f"Updated a record in {table} (ID: {rec_id})"
+            elif action.startswith('DELETE'):
+                details = f"Removed a record from {table} (ID: {rec_id})"
+            elif 'STATUS' in action:
+                details = f"Changed status for {table} (ID: {rec_id})"
+            else:
+                details = f"Modified {table} (ID: {rec_id})"
+
+            recent_audits.append({
+                "log_id": row[0],
+                "action": readable_action,
+                "username": row[2],
+                "timestamp": row[3].isoformat() if row[3] else None,
+                "details": details
+            })
+
+        return {
+            "total_users": total_users,
+            "total_suppliers": total_suppliers,
+            "total_products": total_products,
+            "total_inventory_value": total_inventory_value,
+            "recent_audits": recent_audits
+        }
     finally:
         cursor.close()
         conn.close()
